@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>document</title>
+    <link rel="stylesheet" href="style.css">
+    <!-- <script></script> -->
+
+</head>
+<!------------------------------------------- index.html --------------------------------->
+<body>
+    <h1 id="headd">NIM GAME</h1>
+    <details>
+        <summary>RULE</summary>
+        <div id="rule">
+            <p>There are n piles of pebbles. The i-th pile contains p[i] pebbles, where n and p[i] are non-negative integers.</p>
+            <p>Two players take turns removing pebbles.</p>
+            <p>On each turn, a player chooses exactly one pile and removes any positive number of pebbles from it.</p>
+            <p>The player who takes the last pebble wins.</p>
+        </div>
+    </details>
+    <br><br>
+    <div id="init">
+        <span>Number of piles of pebbles: </span>
+        <input type="number" id="inp_num" oninput="read_numpile()">
+        <br>
+        <span>Number of pebbles in each pile: </span>
+        <div id="inp_arr"></div><br>   
+    </div>
+    <button id="bpl" onclick="playgame()">PLAY</button>
+    <div id="playing"></div>
+</body>
+<!------------------------------------------- main.js --------------------------------->
+<script>
+    var numpile=0;
+    var qual=[]; 
+    var currentChoose=0;
+
+    function read_numpile() {
+        var numpilee = document.getElementById("inp_num").value;
+        numpile = Number(numpilee);
+        qual=new Array(numpile+5);
+        let divv = document.getElementById("inp_arr");
+        divv.innerHTML = "";
+        for (let i = 1; i <= numpile; i++) {
+            let inp = document.createElement("input");
+            inp.className = "pile";
+            inp.type = "number";
+            inp.oninput = function() {
+                qual[i] = Number(this.value);
+            };
+            divv.appendChild(inp);
+        }
+    }
+    function spawn(){
+        function haha(idd){
+            let img = document.createElement("img");
+            img.src=idd;
+            img.className = "float-img";
+            img.style.left = Math.random()*window.innerWidth + "px";
+            document.body.appendChild(img);
+        }
+        j=Math.floor(Math.random()*3);
+        j=j%3+1;
+        haha("stone"+j+".png");
+    }
+    setInterval(spawn, 2000);
+    function sumPebble(){
+        var res=0;
+        for(let i=1;i<=numpile;i++)res+=qual[i];
+        return res;
+    }
+    function lose_notification(){
+        document.body.innerHTML = "<h1>YOU LOSE!</h1>";
+    }
+    function win_notification(){
+        document.body.innerHTML = "<h1>YOU WIN!</h1>";
+    }
+    function valid(){
+        if(numpile<=0)return false;
+        for(let i=1;i<=numpile;i++)if(qual[i]<0)return false;
+        if(sumPebble<=0)return false;
+        return true;
+    }
+    function playgame() {
+        if(!valid()){
+            alert("INVALID!");
+            return;
+        }
+        document.getElementById("init").style.display = "none";
+        document.getElementById("bpl").style.display = "none";
+        renderPlayerTurn();
+    }
+    function renderPlayerTurn() {
+        let output = document.getElementById("playing");
+        output.innerHTML = "<h1>Your turn:</h1>";
+        
+        for (let i = 1; i <= numpile; i++) {
+            let out = document.createElement("button");
+            out.className = "apile";
+            out.innerText = "Pile " + i + ": " + (qual[i] || 0);
+            
+            out.onclick = function() {
+                if (currentChoose===0||currentChoose===i) {
+                    if (qual[i] > 0) {
+                        currentChoose = i;
+                        qual[i]--;
+                        renderPlayerTurn();
+                    }
+                } else {
+                    alert("You can only choose pebble in " + currentChoose+"-th pile");
+                }
+            };
+            output.appendChild(out);
+            output.appendChild(document.createElement("br"));
+        }
+
+        let but = document.createElement("button");
+        but.innerText = "(END TURN)";
+        but.id = "but";
+        but.onclick = function() {
+            if (currentChoose === 0) {
+                alert("You must get least a pebble!");
+                return;
+            }
+            currentChoose = 0;
+            if (sumPebble()<= 0) {
+                win_notification();
+                // location.reload();
+                return;
+            }
+            computerTurn();
+        };
+        output.appendChild(but);
+    }
+
+    function computerTurn() {
+        let nim = 0;
+        for (let i=1;i<=numpile;i++)nim=nim^qual[i];
+        let moved = 0;
+        if (nim !== 0) {
+            for (let i = 1; i <= numpile; i++) {
+                let target = qual[i] ^ nim;
+                if (target < qual[i]) {
+                    dif=qual[i]-target;
+                    qual[i]-=dif;
+                    moved = 1;
+                    break;
+                }
+            }
+        }
+        if (!moved) {
+            for (let i = 1; i <= numpile; i++) {
+                if (qual[i] > 0) {
+                    qual[i]--;
+                    break;
+                }
+            }
+        }
+        alert("Computer has completed move!");
+        if (sumPebble()<= 0) {
+            lose_notification();
+            //location.reload();
+        } else {
+            renderPlayerTurn();
+        }
+    }
+
+</script>
+</html>
